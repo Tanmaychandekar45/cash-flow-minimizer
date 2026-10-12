@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cash Flow Minimizer | DAA Mini Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Top Navigation & Header -->
+      <header class="app-header">
+        <div class="header-container">
+          <div class="brand">
+            <div class="brand-logo">
+              <span class="logo-icon">💸</span>
+            </div>
+            <div class="brand-text">
+              <h1>Cash Flow Minimizer</h1>
+              <span class="brand-subtitle">Splitwise-Style Debt Settlement • DAA Mini Project</span>
+            </div>
+          </div>
+
+          <div class="header-center">
+            <nav class="nav-tabs">
+              <button class="nav-tab active" data-tab="visualizer" id="tab-btn-visualizer">
+                <span class="tab-icon">🕸️</span> Visualizer & Heaps
+              </button>
+              <button class="nav-tab" data-tab="benchmarks" id="tab-btn-benchmarks">
+                <span class="tab-icon">⚡</span> DAA Benchmark Lab
+              </button>
+              <button class="nav-tab" data-tab="theory" id="tab-btn-theory">
+                <span class="tab-icon">📜</span> DAA Theory & Proofs
+              </button>
+              <button class="nav-tab" data-tab="code" id="tab-btn-code">
+                <span class="tab-icon">💻</span> C++ & Python Core
+              </button>
+            </nav>
+          </div>
+
+          <div class="header-actions">
+            <div class="status-badge" id="backend-status-badge">
+              <span class="status-dot"></span>
+              <span class="status-label" id="backend-status-text">Connecting Backend...</span>
+            </div>
+            <button class="icon-btn" id="sound-toggle-btn" title="Toggle Sound Feedback">
+              <span id="sound-icon">🔊</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Container -->
+      <main class="main-content">
+        <!-- TAB 1: VISUALIZER & HEAP STEPPER -->
+        <section class="tab-pane active" id="pane-visualizer">
+          <!-- Control Ribbon -->
+          <div class="control-ribbon">
+            <div class="preset-selector-group">
+              <span class="control-label">Curated Scenarios:</span>
+              <div class="preset-buttons" id="preset-buttons-container">
+                <button class="preset-btn active" data-preset="goa_trip">🏝️ Goa Vacation</button>
+                <button class="preset-btn" data-preset="counter_example">⚖️ Greedy vs DP Counter-Example</button>
+                <button class="preset-btn" data-preset="circular_loop">🔄 Circular Loop</button>
+                <button class="preset-btn" data-preset="roommates">🏢 Roommates Split</button>
+                <button class="preset-btn" data-preset="complex_mesh">🕸️ 8-Person Mesh</button>
+              </div>
+            </div>
+
+            <div class="ribbon-actions">
+              <button class="btn btn-outline" id="btn-open-add-debt">➕ Add Transaction</button>
+              <button class="btn btn-outline" id="btn-random-graph">🎲 Random Graph</button>
+              <button class="btn btn-primary glow" id="btn-solve-all">⚡ Settle All Debts</button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Metrics -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap icon-indigo">📥</div>
+              <div class="kpi-body">
+                <span class="kpi-title">Initial Debts (Edges)</span>
+                <span class="kpi-value" id="kpi-initial-edges">0</span>
+                <span class="kpi-meta">Input directed multigraph</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap icon-emerald">⚡</div>
+              <div class="kpi-body">
+                <span class="kpi-title">Greedy Heap Transactions</span>
+                <span class="kpi-value highlight-emerald" id="kpi-greedy-tx">0</span>
+                <span class="kpi-meta" id="kpi-greedy-time">O(n log n) heap matching</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap icon-violet">🎯</div>
+              <div class="kpi-body">
+                <span class="kpi-title">Exact DP Optimal Min</span>
+                <span class="kpi-value highlight-violet" id="kpi-optimal-tx">0</span>
+                <span class="kpi-meta" id="kpi-optimal-meta">O(2ⁿ) subset-sum formulation</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon-wrap icon-amber">📉</div>
+              <div class="kpi-body">
+                <span class="kpi-title">Transaction Reduction</span>
+                <span class="kpi-value highlight-amber" id="kpi-reduction-ratio">0%</span>
+                <span class="kpi-meta" id="kpi-optimality-status">Optimal</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Split Layout: Network Graph & Net Balances -->
+          <div class="layout-grid-dual">
+            <!-- Graph Visualizer Panel -->
+            <div class="glass-panel graph-panel">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <span class="panel-icon">🌐</span>
+                  <h3>Debt Network Visualizer</h3>
+                </div>
+                <div class="graph-toggle-group">
+                  <button class="toggle-pill active" id="btn-view-settled">Settled Graph (Cleaned)</button>
+                  <button class="toggle-pill" id="btn-view-original">Original Tangled Graph</button>
+                  <button class="toggle-pill" id="btn-view-both">Side-by-Side</button>
+                </div>
+              </div>
+
+              <div class="graph-canvas-container" id="graph-container">
+                <canvas id="debt-network-canvas"></canvas>
+                <div class="canvas-legend">
+                  <span class="legend-item"><span class="legend-dot dot-green"></span> Creditor (+₹)</span>
+                  <span class="legend-item"><span class="legend-dot dot-red"></span> Debtor (-₹)</span>
+                  <span class="legend-item"><span class="legend-dot dot-blue"></span> Flow Edge</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Balances & Net Computation Breakdown -->
+            <div class="glass-panel balances-panel">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <span class="panel-icon">⚖️</span>
+                  <h3>Net Balances Breakdown</h3>
+                </div>
+                <span class="badge badge-subtle">Bᵢ = Incoming - Outgoing</span>
+              </div>
+
+              <div class="balances-content">
+                <div class="net-sum-indicator" id="net-sum-check">
+                  <span class="check-icon">✓</span>
+                  <span>Invariant Verified: Σ Bᵢ = ₹0.00</span>
+                </div>
+                <div class="balances-table-wrap">
+                  <table class="balances-table">
+                    <thead>
+                      <tr>
+                        <th>Participant</th>
+                        <th>Incoming</th>
+                        <th>Outgoing</th>
+                        <th>Net Balance (Bᵢ)</th>
+                        <th>Role</th>
+                      </tr>
+                    </thead>
+                    <tbody id="net-balances-tbody">
+                      <!-- Filled via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Heap Execution Visualizer -->
+          <div class="glass-panel heap-stepper-panel">
+            <div class="panel-header">
+              <div class="panel-title-wrap">
+                <span class="panel-icon">🌲</span>
+                <div>
+                  <h3>Interactive Heap Stepper (Max-Heaps Simulation)</h3>
+                  <p class="panel-subtext">Watch greedy priority queues extract max creditor & max debtor to settle min(credit, debt)</p>
+                </div>
+              </div>
+
+              <div class="stepper-controls">
+                <button class="btn btn-sm btn-outline" id="btn-stepper-reset" title="Reset to start">⏮ Reset</button>
+                <button class="btn btn-sm btn-primary" id="btn-stepper-play" title="Play / Pause Auto-step">▶ Play</button>
+                <button class="btn btn-sm btn-outline" id="btn-stepper-next" title="Next Step">⏭ Next Step</button>
+                <div class="speed-control">
+                  <span>Speed:</span>
+                  <select id="stepper-speed-select">
+                    <option value="1500">Normal (1.5s)</option>
+                    <option value="800">Fast (0.8s)</option>
+                    <option value="3000">Slow (3s)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Heaps Display -->
+            <div class="heaps-visualizer-grid">
+              <!-- Creditors Max-Heap -->
+              <div class="heap-box heap-creditors">
+                <div class="heap-box-header">
+                  <span class="heap-badge badge-green">Creditors Max-Heap (Bᵢ > 0)</span>
+                  <span class="heap-size-badge" id="creditors-heap-size">0 items</span>
+                </div>
+                <div class="heap-nodes-list" id="creditors-heap-list">
+                  <!-- Creditor items -->
+                </div>
+              </div>
+
+              <!-- Center Match Arena -->
+              <div class="heap-match-arena" id="heap-match-arena">
+                <div class="arena-title">Current Greedy Heap Match</div>
+                <div class="arena-vs-card" id="arena-card">
+                  <div class="arena-entity entity-debtor">
+                    <span class="entity-label">Max Debtor</span>
+                    <span class="entity-name" id="arena-debtor-name">—</span>
+                    <span class="entity-amount" id="arena-debtor-amt">₹0</span>
+                  </div>
+                  <div class="arena-action-bridge">
+                    <div class="settle-arrow">➔</div>
+                    <div class="settle-badge" id="arena-settle-badge">Settle: ₹0</div>
+                  </div>
+                  <div class="arena-entity entity-creditor">
+                    <span class="entity-label">Max Creditor</span>
+                    <span class="entity-name" id="arena-creditor-name">—</span>
+                    <span class="entity-amount" id="arena-creditor-amt">₹0</span>
+                  </div>
+                </div>
+                <div class="arena-status-msg" id="arena-status-msg">
+                  Click 'Play' or 'Next Step' to begin greedy heap extraction.
+                </div>
+              </div>
+
+              <!-- Debtors Max-Heap -->
+              <div class="heap-box heap-debtors">
+                <div class="heap-box-header">
+                  <span class="heap-badge badge-red">Debtors Max-Heap (|Bᵢ| for Bᵢ &lt; 0)</span>
+                  <span class="heap-size-badge" id="debtors-heap-size">0 items</span>
+                </div>
+                <div class="heap-nodes-list" id="debtors-heap-list">
+                  <!-- Debtor items -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Settlement Transactions Feed -->
+            <div class="settlement-log-section">
+              <div class="section-title-wrap">
+                <h4>Generated Settlement Transactions (Final DAG)</h4>
+                <button class="btn btn-xs btn-outline" id="btn-copy-report">📋 Copy Report</button>
+              </div>
+              <div class="settlement-tx-list" id="settlement-tx-list">
+                <!-- Transactions cards -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: LIVE DAA BENCHMARK LAB -->
+        <section class="tab-pane" id="pane-benchmarks">
+          <div class="benchmark-hero glass-panel">
+            <div class="benchmark-header">
+              <div>
+                <h2>DAA Empirical Complexity Lab</h2>
+                <p>Benchmark Greedy Priority Queue <span class="tag-algo">O(n log n)</span> vs Optimal Bitmask Dynamic Programming <span class="tag-algo">O(2ⁿ)</span></p>
+              </div>
+              <div class="benchmark-actions">
+                <button class="btn btn-primary glow" id="btn-run-benchmarks">⚡ Run Live Empirical Benchmark</button>
+              </div>
+            </div>
+
+            <div class="benchmark-charts-grid">
+              <div class="chart-card">
+                <div class="chart-header">
+                  <h4>Runtime Complexity Growth (ms)</h4>
+                  <span class="badge badge-subtle">Log Scale Growth</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="chart-runtime-complexity"></canvas>
+                </div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-header">
+                  <h4>Transaction Reduction Efficiency (%)</h4>
+                  <span class="badge badge-subtle">Original vs Settled</span>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="chart-reduction-ratio"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Benchmark Results Table -->
+            <div class="benchmark-table-container">
+              <h3>Empirical Benchmark Data Table</h3>
+              <table class="benchmark-table">
+                <thead>
+                  <tr>
+                    <th>Participants (N)</th>
+                    <th>Input Edges</th>
+                    <th>Greedy Edges</th>
+                    <th>DP Optimal Edges</th>
+                    <th>Greedy Time (ms)</th>
+                    <th>DP Time (ms)</th>
+                    <th>Reduction Ratio</th>
+                    <th>Optimality Note</th>
+                  </tr>
+                </thead>
+                <tbody id="benchmark-results-tbody">
+                  <!-- Filled via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: DAA THEORY & PROOFS -->
+        <section class="tab-pane" id="pane-theory">
+          <div class="theory-container glass-panel">
+            <h2>Design and Analysis of Algorithms: Theoretical Foundation</h2>
+            
+            <div class="theory-section">
+              <h3>1. Problem Formulation</h3>
+              <p>
+                Let $G = (V, E, W)$ be a directed debt multigraph where each directed edge $(u, v) \in E$ with positive weight $W(u, v)$ denotes that person $u$ owes person $v$ an amount $W(u, v)$.
+              </p>
+              <div class="math-card">
+                <div class="math-title">Net Balance Definition ($B_i$):</div>
+                <div class="math-expr">
+                  B_i = \sum_{(u, i) \in E} W(u, i) - \sum_{(i, v) \in E} W(i, v) = \text{Incoming} - \text{Outgoing}
+                </div>
+                <p><strong>Conservation Invariant:</strong> In any closed economy of debts, the sum of all net balances is strictly zero:</p>
+                <div class="math-expr">
+                  \sum_{i \in V} B_i = 0
+                </div>
+              </div>
+            </div>
+
+            <div class="theory-section">
+              <h3>2. Greedy Paradigm with Max-Heaps</h3>
+              <p>
+                The greedy algorithm partitions non-zero balances into two sets:
+              </p>
+              <ul>
+                <li><strong>Creditors Set:</strong> $\mathcal{C} = \{ i \in V \mid B_i > 0 \}$ maintained in a <strong>Max-Heap</strong>.</li>
+                <li><strong>Debtors Set:</strong> $\mathcal{D} = \{ j \in V \mid B_j &lt; 0 \}$ maintained in a <strong>Max-Heap</strong> using $|B_j|$.</li>
+              </ul>
+              <div class="algorithm-pseudocode">
+                <div class="code-header">Greedy Heap Settlement Algorithm</div>
+                <pre><code>Algorithm CashFlowMinimizerGreedy(V, E, W):
+  1. For each v in V: B[v] = 0
+  2. For each (u, v, w) in E:
+       B[u] -= w
+       B[v] += w
+  3. Initialize MaxHeap Creditors, MaxHeap Debtors
+  4. For each v in V:
+       if B[v] > 0: Creditors.push(B[v], v)
+       if B[v] &lt; 0: Debtors.push(-B[v], v)
+  5. While Creditors not empty and Debtors not empty:
+       (c_amt, c_node) = Creditors.pop()
+       (d_amt, d_node) = Debtors.pop()
+       settle = min(c_amt, d_amt)
+       RecordTransaction(d_node -> c_node, settle)
+       if c_amt - settle > 0: Creditors.push(c_amt - settle, c_node)
+       if d_amt - settle > 0: Debtors.push(d_amt - settle, d_node)
+  6. Return SettledTransactions</code></pre>
+              </div>
+
+              <div class="complexity-comparison-grid">
+                <div class="complexity-box">
+                  <h4>Greedy Time Complexity</h4>
+                  <div class="complexity-big-o">O(|V| \log |V| + |E|)</div>
+                  <p>In each step, at least one person's balance becomes zero. Therefore, at most $|V| - 1$ settlements occur, each taking $O(\log |V|)$ heap operations.</p>
+                </div>
+                <div class="complexity-box">
+                  <h4>Greedy Space Complexity</h4>
+                  <div class="complexity-big-o">O(|V|)</div>
+                  <p>Requires memory proportional to the number of participants to store net balances and heap elements.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="theory-section">
+              <h3>3. NP-Hardness Proof & Optimal Dynamic Programming</h3>
+              <div class="proof-card">
+                <h4>Theorem: Minimizing the total number of cash transactions is NP-Hard.</h4>
+                <p><strong>Reduction from Subset-Sum / Partition Problem:</strong></p>
+                <p>
+                  Each transaction can reduce at most one debtor or creditor to balance zero, except when a subset of individuals has balances that sum precisely to zero!
+                  If a subset $S \subseteq V$ satisfies $\sum_{i \in S} B_i = 0$, that subset can be completely settled internally in $|S| - 1$ transactions without interacting with the rest of the group.
+                </p>
+                <p>
+                  Therefore, if the set of non-zero balance individuals can be partitioned into $k$ disjoint subsets $S_1, S_2, \dots, S_k$ such that $\sum_{v \in S_j} B_v = 0$ for all $j$, then the total minimum transactions required is:
+                </p>
+                <div class="math-expr highlight-math">
+                  \text{Minimum Transactions} = |V_{\text{active}}| - k_{\max}
+                </div>
+                <p>
+                  To minimize the number of transactions, we must <strong>maximize $k$</strong> (the number of disjoint zero-sum subsets).
+                  Finding whether a zero-sum subset exists is equivalent to the classical <strong>Subset Sum Problem</strong>, which is known to be <strong>NP-Complete</strong>. Hence, the transaction minimization problem is <strong>NP-Hard</strong>.
+                </p>
+              </div>
+
+              <div class="counter-example-showcase">
+                <h4>Why Greedy Can Be Sub-Optimal (The Counter-Example)</h4>
+                <p>Consider 5 participants with the following net balances:</p>
+                <div class="example-balance-row">
+                  <span class="badge badge-green">Alice: +4</span>
+                  <span class="badge badge-green">Bob: +3</span>
+                  <span class="badge badge-green">Charlie: +2</span>
+                  <span class="badge badge-red">Dave: -5</span>
+                  <span class="badge badge-red">Evan: -4</span>
+                </div>
+                <div class="comparison-dual-cards">
+                  <div class="side-card">
+                    <h5>Greedy Algorithm ($4$ transactions)</h5>
+                    <ol>
+                      <li>Max Debtor Dave (-5) & Max Creditor Alice (+4) ➔ Settle ₹4. Dave has -1 left.</li>
+                      <li>Max Debtor Evan (-4) & Max Creditor Bob (+3) ➔ Settle ₹3. Evan has -1 left.</li>
+                      <li>Max Debtor Dave (-1) & Charlie (+2) ➔ Settle ₹1. Charlie has +1 left.</li>
+                      <li>Evan (-1) & Charlie (+1) ➔ Settle ₹1.</li>
+                    </ol>
+                    <span class="result-tag tag-suboptimal">Total = 4 Transactions</span>
+                  </div>
+                  <div class="side-card">
+                    <h5>Optimal DP Partition ($3$ transactions)</h5>
+                    <p>Recognizes two disjoint zero-sum subsets ($k=2$):</p>
+                    <ul>
+                      <li>Subset 1: {Alice (+4), Evan (-4)} ➔ Settle ₹4 in <strong>1 transaction</strong>.</li>
+                      <li>Subset 2: {Bob (+3), Charlie (+2), Dave (-5)} ➔ Settle in <strong>2 transactions</strong> (Bob pays Dave ₹3, Dave pays Charlie ₹2).</li>
+                    </ul>
+                    <span class="result-tag tag-optimal">Total = (5 - 2) = 3 Transactions (Global Optimal!)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: C++ & PYTHON CODE INSPECTOR -->
+        <section class="tab-pane" id="pane-code">
+          <div class="code-inspector-container glass-panel">
+            <div class="code-header-bar">
+              <div class="code-tabs">
+                <button class="code-tab active" data-lang="cpp" id="code-tab-cpp">C++ Core Engine (cash_flow_minimizer.cpp)</button>
+                <button class="code-tab" data-lang="python" id="code-tab-python">Python Flask Engine (algorithms.py)</button>
+              </div>
+              <button class="btn btn-xs btn-outline" id="btn-copy-code">Copy Source</button>
+            </div>
+
+            <div class="code-display-wrap">
+              <pre><code id="code-block-content" class="language-cpp">Loading source code...</code></pre>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Modal: Add Custom Debt -->
+      <div class="modal-backdrop" id="modal-add-debt">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>Add Custom Debt Transaction</h3>
+            <button class="modal-close-btn" id="btn-close-modal">✕</button>
+          </div>
+          <form id="form-add-debt">
+            <div class="form-group">
+              <label for="input-debtor">Debtor (Who Owes Money):</label>
+              <input type="text" id="input-debtor" placeholder="e.g. Alice" required />
+            </div>
+            <div class="form-group">
+              <label for="input-creditor">Creditor (Who is Owed Money):</label>
+              <input type="text" id="input-creditor" placeholder="e.g. Bob" required />
+            </div>
+            <div class="form-group">
+              <label for="input-amount">Amount (₹):</label>
+              <input type="number" id="input-amount" min="1" step="any" placeholder="e.g. 250" required />
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-outline" id="btn-cancel-modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Add Debt</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
